@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+	<head>      
+		<title>Test</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+        <meta charset="UTF-8">  
+		<!-- Libraries -->
+		<script language="javascript" type="text/javascript" src="assets/js/jquery-3.4.1.slim.min.js"></script>
+		<script language="javascript" type="text/javascript" src="assets/js/ipfs-http-client@30.1.1.js"></script>
+        <script language="javascript" type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+		<script language="javascript" type="text/javascript" src="assets/js/numeral.js"></script>
+		<script language="javascript" type="text/javascript" src="assets/js/web3.min.js"></script>
+		<script language="javascript" type="text/javascript" src="assets/js/date.format.js"></script>
+		<script language="javascript" type="text/javascript" src="assets/js/easy.qrcode.js"></script>
+	</head>
+	<body>
+        <h1>Test</h1>
+		<input type="button" value="releasePayment" onclick="releasePayment()"/>
+		<br><br>
+		<div id="hash"style="width:100%;height:20px"></div>
+
+		<pre id="log" style="width:100%;height:20px"></pre> 
+
+		<script>
+			function log(str) {document.body.innerHTML +=str+"<br>"; }    
+
+			var transactionReceipt;
+			async function releasePayment() {
+				console.log("releasePayment function started");
+				document.getElementById("hash").innerHTML = "releasePayment function started";
+				releasePaymentHash = "releasePaymentHash";
+				let txlink = "https://rinkeby.etherscan.io/tx/";
+
+				// From https://medium.com/coinmonks/signing-and-making-transactions-on-ethereum-using-web3-js-1b5663207d63
+				// Create keystore file: https://github.com/ethereum/go-ethereum/wiki/Managing-your-accounts
+				// connect to any peer; using infura here
+				// Issue with CORS header: https://github.com/ethereum/web3.js/issues/2559
+				const web3 = new Web3(
+					new Web3.providers.HttpProvider (
+						"https://rinkeby.infura.io/v3/1c5e57a82ddb432cb37bbea2d4549cfe", {
+							headers: [{
+								name: 'Access-Control-Allow-Origin',
+								value: 'https://rinkeby.infura.io/v3/key'
+							}]
+						}
+					)
+				);
+				// contents of keystore file, can do a fs read
+				var keystore = {
+					"address":"fa817bd1c470f5e83367975ec24f885f305ade34",
+					"crypto":{"cipher":"aes-128-ctr","ciphertext":"0152c6fc22737041a1c569144f7bc1d2e3aa3b574944c4aef7dd2659689680cf","cipherparams":{"iv":"978c00760f9237400a65707a1f600704"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"12a70718a595736758df55016c8ee0b7e26aeb12c99812d846cc5707ddbd1187"},"mac":"b378f41825c60172bb36509b9a34ff39cdf9b0de7dad82a656442fbf6e4c538e"},
+					"id":"3ab3ebee-5992-4775-b1d5-333fc22f56f4",
+					"version":3
+				};
+				const decryptedAccount = web3.eth.accounts.decrypt(keystore, 'blkk2019');
+				const rawTransaction = {
+					"from": "0xfA817bD1c470F5E83367975Ec24F885F305AdE34",
+					"to": "0x88E640aA87296ebB3A92AB1E50D43f06C2940582",
+					"value": web3.utils.toHex(web3.utils.toWei("0.001", "ether")),
+					"gas": 50000,
+					"chainId": 4 // Rinkeby testnet
+				};
+				await decryptedAccount.signTransaction(rawTransaction)
+				.then(signedTx => {
+					web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+					document.getElementById("hash").innerHTML = "transaction is pending confirmation";
+				})
+				.then(receipt => {
+					console.log("Transaction receipt: ", receipt); 
+					transactionReceipt = receipt; 
+					// log(`Transaction receipt: ${transactionReceipt["transactionHash"]}`);
+					document.getElementById("hash").innerHTML = `Etherscan:&nbsp;<a href="${txlink}${transactionReceipt["transactionHash"]}" target="_blank" rel="noopener noreferrer">${transactionReceipt["transactionHash"]}</a><br>`;
+				})
+				.catch(err => log(err))
+
+				// Or sign using private key from decrypted keystore file
+				/*
+				web3.eth.accounts.signTransaction(rawTransaction, decryptedAccount.privateKey)
+				.then(console.log);
+				.on('transactionHash', function(hash) {
+					log(`hash: ${hash}`);
+					document.getElementById("hash").innerHTML = `Hash:&nbsp;<strong><a href="${txlink}${hash}" target="_blank" rel="noopener noreferrer">${hash}</strong></a><br>`;
+				})
+				*/
+
+			}
+		</script>
+	</body>
+</html>
+

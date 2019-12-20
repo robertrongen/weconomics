@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+    <script src="https://unpkg.com/ipfs-http-client/dist/index.js"></script>  
+    <script src="https://bundle.run/buffer"></script>  
+    <title>JS IPFS API - Example - Browser - Add File</title>
+  </head>
+  <body>
+    <h1>JS IPFS API - Add file from the browser</h1>
+      <input type="file" id="source">
+      <button id="store" onclick="store()">create in ipfs</button>
+    <div>
+      <h2>ipfs hash:</h2>
+      <div id="hash"></div>
+    </div>
+		<script src="assets/js/libraries/filereader.js"></script>
+  </body>
+</html>
